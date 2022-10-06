@@ -12,6 +12,8 @@ library(stringr)
 #getwd()
 #setwd()
 #fin <- read.csv("Future_500_data.csv")
+fin_original <- read.csv("Future_500_data.csv", na.strings=c(""))
+View(fin_original)
 fin <- read.csv("Future_500_data.csv", na.strings=c(""))
 
 #-------- Explore dataset --------
@@ -43,13 +45,16 @@ fin$Growth <- gsub("%", "", fin$Growth)
 #--------Correct object types--------
 fin <- fin %>%
   convert(fct(ID),
-          num(Revenue, Expenses))
+          int(Revenue, Expenses),
+          num(Employees, Growth))
+
+typeof(fin$Expenses)
 
 fin$Employees <- as.numeric(unlist(fin$Employees))
-typeof(fin$Employees)
+#typeof(fin$Employees)
 
 fin$Growth <- as.numeric(as.character(fin$Growth))
-typeof(fin$Growth)
+#typeof(fin$Growth)
 
 str(fin)
 
@@ -70,6 +75,7 @@ fin[which(fin$Revenue == 9746272),]
 #----Using is.na() funtion to find NAs in just one column----
 fin[is.na(fin$Expenses), ]
 fin[is.na(fin$State), ]
+fin[is.na(fin$Revenue), ]
 
 #--------Removing records--------
 fin_backup <- fin
@@ -97,15 +103,15 @@ fin[!complete.cases(fin),] #Rows 3 and 332 have missing 'employees' values
 fin[is.na(fin$Employees),] #All NAs in the employees column
 
 #1.5 The median function returns an error for both lines covered in the course. 
-median(fin[,"Employees"], na.rm=TRUE) #Error: need numeric data
-median(fin[fin$Industry == "Retail","Employees"], na.rm=TRUE) #Error: need numeric data
+#median(fin[,"Employees"], na.rm=TRUE) #Error: need numeric data
+#median(fin[fin$Industry == "Retail","Employees"], na.rm=TRUE) #Error: need numeric data
 
 #1.51 Check object types. For some reason the first one is a list, not a double. I think that's the issue. 
 typeof(fin[,"Employees"]) #List
 typeof(fin$Employees) #Double
 
 median(fin$Employees, na.rm=TRUE) #The median function works here. 
-median(fin[,"Employees"],na.rm=TRUE) #But not here.
+#median(fin[,"Employees"],na.rm=TRUE) #But not here.
 
 #1.52 Looked up how to convert lists to an integer object. Use as.numeric(unlist(x))
 median(as.numeric(unlist(fin[,"Employees"])), na.rm=TRUE) #56
@@ -141,27 +147,32 @@ fin[is.na(fin$Growth) & fin$Industry == "Construction", "Growth"] <- med_growth_
 fin[8,]
 
 #--------Replacing missing data: median imputation method (part 3)--------
-fin[is.na(fin$Expenses),] #Fill in median for expenses (rows 8 & 44 & 17) by industry
+fin[is.na(fin$Expenses),] #Fill in median for expenses (rows 8 & 44) by industry
 
 #1. Find the median expenses for each industry
 #Construction
 typeof(fin[fin$Expenses == "Construction","Expenses"]) #List
 median(as.numeric(unlist(fin[fin$Industry == "Construction","Expenses"])), na.rm=TRUE) #4506976
-#IT Services
-median(as.numeric(unlist(fin[fin$Industry == "IT Services","Expenses"])), na.rm=TRUE) #4068630
 
 #2. Replace NA value with median
 #Construction
 med_rev_const <- median(as.numeric(unlist(fin[fin$Industry == "Construction","Expenses"])), na.rm=TRUE) #4506976
+med_rev_const <- as.integer(med_rev_const)
+typeof(med_rev_const)
 fin[is.na(fin$Expenses) & fin$Industry == "Construction", "Expenses"] <- med_rev_const
-#IT Services
-med_rev_IT <- median(as.numeric(unlist(fin[fin$Industry == "IT Services","Expenses"])), na.rm=TRUE) #4068630
-fin[is.na(fin$Expenses) & fin$Industry == "IT Services", "Expenses"] <- med_rev_IT
 
 #2.5 Check
-fin[15,]
 fin[c(8,42),]
-fin[is.na(fin$Expenses),] #None
 
+#--------Manually enter missing data--------
+fin[is.na(fin$Profit) & is.na(fin$Revenue), "Profit"] <- 4548083
+fin[c(8, 42),]
+
+#--------Replacing missing data: deriving values method--------
+fin[is.na(fin$Revenue), "Revenue"] <- fin[is.na(fin$Revenue), "Expenses"] + fin[is.na(fin$Revenue), "Profit"] 
+fin[c(8,42),]
+
+fin[is.na(fin$Expenses), "Expenses"] <- fin[fin$Name == "Ganzlax", "Revenue"] - fin[fin$Name == "Ganzlax", "Profit"]
+fin[c(15),]
 
 
