@@ -48,7 +48,7 @@ fin <- fin %>%
           int(Revenue, Expenses),
           num(Employees, Growth))
 
-typeof(fin$Expenses)
+typeof(fin$Industry)
 
 fin$Employees <- as.numeric(unlist(fin$Employees))
 #typeof(fin$Employees)
@@ -174,5 +174,6 @@ fin[c(8,42),]
 
 fin[is.na(fin$Expenses), "Expenses"] <- fin[fin$Name == "Ganzlax", "Revenue"] - fin[fin$Name == "Ganzlax", "Profit"]
 fin[c(15),]
+
 
 
