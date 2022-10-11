@@ -17,8 +17,6 @@ library(stringr)
 #Plot: For all machines   
 
 #---------------Read in data---------------
-getwd()
-setwd()
 coal <- read.csv("P3_Machine_Utilization.csv")
 str(coal)
 head(coal,10)
